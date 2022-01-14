@@ -2,6 +2,7 @@ package adris.altoclef.chains;
 
 import adris.altoclef.AltoClef;
 import adris.altoclef.Settings;
+import adris.altoclef.chains.FoodChain.FoodChainConfig;
 import adris.altoclef.tasks.resources.CollectFoodTask;
 import adris.altoclef.tasksystem.TaskRunner;
 import adris.altoclef.util.helpers.ConfigHelper;
@@ -43,6 +44,7 @@ public class FoodChain extends SingleTaskChain {
     public float getPriority(AltoClef mod) {
 
         if (!AltoClef.inGame()) {
+            stopEat(mod);
             return Float.NEGATIVE_INFINITY;
         }
 
@@ -92,9 +94,8 @@ public class FoodChain extends SingleTaskChain {
             if (!LookHelper.tryAvoidingInteractable(mod)) {
                 return Float.NEGATIVE_INFINITY;
             }
-
-            startEat(mod, Items.COOKED_BEEF);
-        } else if (_isTryingToEat && !mod.getMLGBucketChain().isChorusFruiting()) {
+            startEat(mod, toUse);
+        } else {
             stopEat(mod);
         }
 
@@ -191,12 +192,7 @@ public class FoodChain extends SingleTaskChain {
 
     @Override
     protected void onStop(AltoClef mod) {
-        if (_isTryingToEat) {
-            mod.getInputControls().release(Input.CLICK_RIGHT);
-            _isTryingToEat = false;
-            _requestFillup = false;
-            mod.getExtraBaritoneSettings().setInteractionPaused(false);
-        }
+        stopEat(mod);
         super.onStop(mod);
     }
 

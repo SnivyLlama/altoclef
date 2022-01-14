@@ -3,15 +3,14 @@ package adris.altoclef.tasks.speedrun;
 import adris.altoclef.AltoClef;
 import adris.altoclef.Debug;
 import adris.altoclef.TaskCatalogue;
-import adris.altoclef.tasks.container.DoStuffInContainerTask;
 import adris.altoclef.tasks.DoToClosestBlockTask;
 import adris.altoclef.tasks.InteractWithBlockTask;
+import adris.altoclef.tasks.construction.DestroyBlockTask;
+import adris.altoclef.tasks.container.DoStuffInContainerTask;
 import adris.altoclef.tasks.container.LootContainerTask;
 import adris.altoclef.tasks.container.SmeltInFurnaceTask;
-import adris.altoclef.tasks.construction.DestroyBlockTask;
-import adris.altoclef.tasks.misc.LootDesertTempleTask;
-import adris.altoclef.tasks.resources.TradeWithPiglinsTask;
 import adris.altoclef.tasks.misc.EquipArmorTask;
+import adris.altoclef.tasks.misc.LootDesertTempleTask;
 import adris.altoclef.tasks.misc.PlaceBedAndSetSpawnTask;
 import adris.altoclef.tasks.misc.SleepThroughNightTask;
 import adris.altoclef.tasks.movement.*;
@@ -21,11 +20,11 @@ import adris.altoclef.util.Dimension;
 import adris.altoclef.util.ItemTarget;
 import adris.altoclef.util.MiningRequirement;
 import adris.altoclef.util.SmeltTarget;
-import adris.altoclef.util.csharpisbetter.TimerGame;
 import adris.altoclef.util.helpers.ConfigHelper;
 import adris.altoclef.util.helpers.ItemHelper;
 import adris.altoclef.util.helpers.StorageHelper;
 import adris.altoclef.util.helpers.WorldHelper;
+import adris.altoclef.util.time.TimerGame;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -69,6 +68,7 @@ public class BeatMinecraft2Task extends Task {
             Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS,
             Items.GOLDEN_BOOTS
     };
+    private static final Item[] COLLECT_EYE_ARMOR_END = ItemHelper.DIAMOND_ARMORS;
     private static final ItemTarget[] COLLECT_EYE_GEAR = combine(
             toItemTargets(Items.DIAMOND_SWORD),
             toItemTargets(Items.DIAMOND_PICKAXE, 3),
@@ -124,21 +124,23 @@ public class BeatMinecraft2Task extends Task {
     private Task _lootTask;
     private final Task _buildMaterialsTask;
     private final PlaceBedAndSetSpawnTask _setBedSpawnTask = new PlaceBedAndSetSpawnTask();
-    private final LocateStrongholdTask _locateStrongholdTask;
+    private final GoToStrongholdPortalTask _locateStrongholdTask;
     private final Task _goToNetherTask = new DefaultGoToDimensionTask(Dimension.NETHER); // To keep the portal build cache.
     private boolean _collectingEyes;
     private final Task _getOneBedTask = TaskCatalogue.getItemTask("bed", 1);
     private final Task _sleepThroughNightTask = new SleepThroughNightTask();
 
+    // End specific dragon breath avoidance
+    private final DragonBreathTracker _dragonBreathTracker = new DragonBreathTracker();
+    private boolean _escapingDragonsBreath;
+
     public BeatMinecraft2Task() {
-        _locateStrongholdTask = new LocateStrongholdTask(_config.targetEyes);
+        _locateStrongholdTask = new GoToStrongholdPortalTask(_config.targetEyes);
         _buildMaterialsTask = new GetBuildingMaterialsTask(_config.buildMaterialCount);
     }
 
     @Override
     protected void onStart(AltoClef mod) {
-        // Config jank
-        _locateStrongholdTask.setTargetEyes(_config.targetEyes);
 
         // Add a warning to make sure the user at least knows to change the settings.
         String settingsWarningTail = "in \".minecraft/altoclef_settings.json\". @gamer may break if you don't add this! (sorry!)";
@@ -156,6 +158,11 @@ public class BeatMinecraft2Task extends Task {
         mod.getBehaviour().addProtectedItems(ItemHelper.BED);
         // Allow walking on end portal
         mod.getBehaviour().allowWalkingOn(blockPos -> _enterindEndPortal && mod.getChunkTracker().isChunkLoaded(blockPos) && mod.getWorld().getBlockState(blockPos).getBlock() == Blocks.END_PORTAL);
+
+        // Avoid dragon breath
+        mod.getBehaviour().avoidWalkingThrough(blockPos -> {
+            return WorldHelper.getCurrentDimension() == Dimension.END && !_escapingDragonsBreath && _dragonBreathTracker.isTouchingDragonBreath(blockPos);
+        });
 
         // Don't break the bed we placed near the end portal
         mod.getBehaviour().avoidBlockBreaking(blockPos -> {
@@ -220,6 +227,17 @@ public class BeatMinecraft2Task extends Task {
         // End stuff.
         if (WorldHelper.getCurrentDimension() == Dimension.END) {
 
+            // Dragons breath avoidance
+            _dragonBreathTracker.updateBreath(mod);
+            for (BlockPos playerIn : WorldHelper.getBlocksTouchingPlayer(mod)) {
+                if (_dragonBreathTracker.isTouchingDragonBreath(playerIn)) {
+                    setDebugState("ESCAPE dragons breath");
+                    _escapingDragonsBreath = true;
+                    return _dragonBreathTracker.getRunAwayTask();
+                }
+            }
+            _escapingDragonsBreath = false;
+
             // If we find an ender portal, just GO to it!!!
             if (mod.getBlockTracker().anyFound(Blocks.END_PORTAL)) {
                 setDebugState("WOOHOO");
@@ -245,7 +263,7 @@ public class BeatMinecraft2Task extends Task {
             if (!mod.getItemStorage().hasItem(Items.WATER_BUCKET) && mod.getEntityTracker().itemDropped(Items.WATER_BUCKET))
                 return new PickupDroppedItemTask(Items.WATER_BUCKET, 1);
             // Grab armor
-            for (Item armorCheck : COLLECT_EYE_ARMOR) {
+            for (Item armorCheck : COLLECT_EYE_ARMOR_END) {
                 if (!StorageHelper.isArmorEquipped(mod, armorCheck)) {
                     if (mod.getItemStorage().hasItem(armorCheck)) {
                         return new EquipArmorTask(armorCheck);
@@ -311,6 +329,17 @@ public class BeatMinecraft2Task extends Task {
             case OVERWORLD -> {
                 // If we found our end portal...
                 if (endPortalFound(mod, _endPortalCenterLocation)) {
+
+                    // Destroy silverfish spawner
+                    if (StorageHelper.miningRequirementMetInventory(mod, MiningRequirement.WOOD)) {
+                        Optional<BlockPos> silverfish = mod.getBlockTracker().getNearestTracking(blockPos -> {
+                            return WorldHelper.getSpawnerEntity(mod, blockPos) instanceof SilverfishEntity;
+                        }, Blocks.SPAWNER);
+                        if (silverfish.isPresent()) {
+                            return new DestroyBlockTask(silverfish.get());
+                        }
+                    }
+
                     // Get remaining beds.
                     if (needsBeds(mod)) {
                         setDebugState("Collecting beds.");
@@ -348,15 +377,6 @@ public class BeatMinecraft2Task extends Task {
                         );
                     } else {
 
-                        // Destroy silverfish spawner
-                        if (StorageHelper.miningRequirementMetInventory(mod, MiningRequirement.WOOD)) {
-                            Optional<BlockPos> silverfish = mod.getBlockTracker().getNearestTracking(blockPos -> {
-                                return WorldHelper.getSpawnerEntity(mod, blockPos) instanceof SilverfishEntity;
-                            }, Blocks.SPAWNER);
-                            if (silverfish.isPresent()) {
-                                return new DestroyBlockTask(silverfish.get());
-                            }
-                        }
                         // Open the portal! (we have enough eyes, do it)
                         setDebugState("Opening End Portal");
                         return new DoToClosestBlockTask(
@@ -494,7 +514,7 @@ public class BeatMinecraft2Task extends Task {
             // If EVERY portal frame is loaded, consider updating our cached filled portal count.
             if (frameBlocks.stream().allMatch(blockPos -> mod.getChunkTracker().isChunkLoaded(blockPos))) {
                 _cachedFilledPortalFrames = frameBlocks.stream().reduce(0, (count, blockPos) ->
-                                count + (isEndPortalFrameFilled(mod, blockPos) ? 1 : 0),
+                        count + (isEndPortalFrameFilled(mod, blockPos) ? 1 : 0),
                         Integer::sum);
             }
             return _cachedFilledPortalFrames;
