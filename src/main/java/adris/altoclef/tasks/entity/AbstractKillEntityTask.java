@@ -1,7 +1,9 @@
 package adris.altoclef.tasks.entity;
 
 import adris.altoclef.AltoClef;
+import adris.altoclef.Debug;
 import adris.altoclef.tasksystem.Task;
+import baritone.api.utils.input.Input;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -10,6 +12,7 @@ import net.minecraft.item.Items;
  * Attacks an entity, but the target entity must be specified.
  */
 public abstract class AbstractKillEntityTask extends AbstractDoToEntityTask {
+    private boolean _jumping;
 
     private static final double OTHER_FORCE_FIELD_RANGE = 2;
 
@@ -56,7 +59,13 @@ public abstract class AbstractKillEntityTask extends AbstractDoToEntityTask {
 
         // Equip weapon
         equipWeapon(mod);
-        if (hitProg >= 0.99) {
+        if (mod.getModSettings().isAttemptCriticalHits() && hitProg >= 0.6 && mod.getPlayer().isOnGround()) {
+            mod.getInputControls().hold(Input.JUMP);
+        } else if(_jumping && mod.getInputControls().isHeldDown(Input.JUMP)) {
+            mod.getInputControls().release(Input.JUMP);
+        }
+        if (hitProg >= 0.99 &&
+                (!mod.getModSettings().isAttemptCriticalHits() || mod.getPlayer().fallDistance > 0)) {
             mod.getControllerExtras().attack(entity);
         }
         return null;
