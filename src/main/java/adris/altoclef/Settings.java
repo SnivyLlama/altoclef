@@ -176,6 +176,11 @@ public class Settings implements IFailableConfigFile {
     private boolean mobDefense = true;
 
     /**
+     * If enabled, will try to use critical hits by jumping when targetting an entity
+     */
+    private boolean attemptCriticalHits = false;
+
+    /**
      * Defines how force field behaves when "mobDefense" is set to true.
      * Note that the force field is not here to KILL mobs, but PUSH THEM AWAY.
      * <p>
@@ -465,6 +470,10 @@ public class Settings implements IFailableConfigFile {
 
     public boolean isMobDefense() {
         return mobDefense;
+    }
+
+    public boolean isAttemptCriticalHits() {
+        return attemptCriticalHits;
     }
 
     public boolean isDodgeProjectiles() {
