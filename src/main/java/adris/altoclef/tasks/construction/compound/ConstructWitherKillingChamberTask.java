@@ -20,21 +20,21 @@ import java.util.Optional;
 
 public class ConstructWitherKillingChamberTask extends Task {
     public static final BlockPos[] OBSIDIAN = {
+            new BlockPos(0, -4, 0),
+            new BlockPos(1, -4, 0),
+            new BlockPos(1, -4, 1),
+            new BlockPos(1, -4, -1),
+    };
+    public static final BlockPos[] SOUL_SAND = {
             new BlockPos(0, -3, 0),
             new BlockPos(1, -3, 0),
             new BlockPos(1, -3, 1),
             new BlockPos(1, -3, -1),
     };
-    public static final BlockPos[] SOUL_SAND = {
-            new BlockPos(0, -2, 0),
-            new BlockPos(1, -2, 0),
-            new BlockPos(1, -2, 1),
-            new BlockPos(1, -2, -1),
-    };
     public final BlockPos[] SKULLS = {
-            new BlockPos(2, -2, 0),
-            new BlockPos(2, -2, 1),
-            new BlockPos(2, -2, -1)
+            new BlockPos(2, -3, 0),
+            new BlockPos(2, -3, 1),
+            new BlockPos(2, -3, -1)
     };
     public ConstructWitherKillingChamberTask() {
 
