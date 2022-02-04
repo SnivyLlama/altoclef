@@ -53,6 +53,7 @@ public class MobDefenseChain extends SingleTaskChain {
     private Entity _targetEntity;
     private boolean _doingFunkyStuff = false;
     private boolean _wasPuttingOutFire = false;
+    private boolean _avoidWitherSkeletons = false;
     private CustomBaritoneGoalTask _runAwayTask;
 
     private float _cachedLastPriority;
@@ -69,7 +70,9 @@ public class MobDefenseChain extends SingleTaskChain {
         if (fuse <= 0.001f) return distance;
         return distance * 0.2; // less is WORSE
     }
-
+    public void doWeAvoidWitherSkeletons(boolean avoid) {
+        _avoidWitherSkeletons = avoid;
+    }
     @Override
     public float getPriority(AltoClef mod) {
         _cachedLastPriority = getPriorityInner(mod);
@@ -407,7 +410,7 @@ public class MobDefenseChain extends SingleTaskChain {
     private Optional<Entity> getUniversallyDangerousMob(AltoClef mod) {
         // Wither skeletons are dangerous because of the wither effect. Oof kinda obvious.
         // If we merely force field them, we will run into them and get the wither effect which will kill us.
-        if (mod.getEntityTracker().entityFound(WitherSkeletonEntity.class)) {
+        if (mod.getEntityTracker().entityFound(WitherSkeletonEntity.class) && _avoidWitherSkeletons) {
             Optional<Entity> entity = mod.getEntityTracker().getClosestEntity(mod.getPlayer().getPos(), WitherSkeletonEntity.class);
             if (entity.isPresent()) {
                 double range = SAFE_KEEP_DISTANCE - 2;
