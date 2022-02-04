@@ -1,7 +1,6 @@
 package adris.altoclef.tasks.entity;
 
 import adris.altoclef.AltoClef;
-import adris.altoclef.Debug;
 import adris.altoclef.tasksystem.Task;
 import baritone.api.utils.input.Input;
 import net.minecraft.entity.Entity;
