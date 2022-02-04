@@ -3,10 +3,12 @@ package adris.altoclef.tasks.movement;
 import adris.altoclef.AltoClef;
 import adris.altoclef.tasks.construction.compound.ConstructNetherPortalBucketTask;
 import adris.altoclef.tasks.construction.compound.ConstructNetherPortalObsidianTask;
+import adris.altoclef.tasks.speedrun.BeatMinecraft2Task;
 import adris.altoclef.tasksystem.Task;
 import adris.altoclef.util.Dimension;
 import adris.altoclef.util.helpers.WorldHelper;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Optional;
@@ -29,7 +31,7 @@ public class DefaultGoToDimensionTask extends Task {
 
     @Override
     protected void onStart(AltoClef mod) {
-        mod.getBlockTracker().trackBlock(Blocks.NETHER_PORTAL);
+        mod.getBlockTracker().trackBlock(Blocks.NETHER_PORTAL, Blocks.END_PORTAL);
     }
 
     @Override
@@ -109,8 +111,18 @@ public class DefaultGoToDimensionTask extends Task {
     }
 
     private Task goToOverworldFromEndTask(AltoClef mod) {
-        setDebugState("TODO: Go to center portal (at 0,0). If it doesn't exist, kill ender dragon lol");
-        return null;
+        Optional<BlockPos> portal = getEndPortalPos(mod);
+        if (portal.isPresent()) {
+            setDebugState("Going to center portal");
+            return new GetToBlockTask(portal.get());
+        }
+        else if (mod.getEntityTracker().entityFound(EnderDragonEntity.class)) {
+            setDebugState("Killing the dragon");
+            return new BeatMinecraft2Task();
+        } else {
+            setDebugState("Umm? Approaching 0 0?");
+            return new GetToXZTask(0, 0);
+        }
     }
 
     private Task goToNetherFromOverworldTask(AltoClef mod) {
@@ -136,6 +148,13 @@ public class DefaultGoToDimensionTask extends Task {
             return closest.isPresent() && closest.get().isWithinDistance(mod.getPlayer().getPos(), 2000);
         }
         return false;
+    }
+
+    private Optional<BlockPos> getEndPortalPos(AltoClef mod) {
+        if (mod.getBlockTracker().anyFound(Blocks.NETHER_PORTAL)) {
+            return mod.getBlockTracker().getNearestTracking(mod.getPlayer().getPos(), Blocks.NETHER_PORTAL);
+        }
+        return Optional.empty();
     }
 
     public enum OVERWORLD_TO_NETHER_BEHAVIOUR {
