@@ -122,7 +122,7 @@ public class KillWithersTask extends Task {
 
     @Override
     protected boolean isEqual(Task other) {
-        return other instanceof CollectNetherStarTask;
+        return other instanceof KillWithersTask;
     }
 
     @Override
