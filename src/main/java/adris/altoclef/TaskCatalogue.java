@@ -417,7 +417,8 @@ public class TaskCatalogue {
             simple("boat", ItemHelper.WOOD_BOAT, CollectBoatTask::new);
             woodTasks("boat", woodItems -> woodItems.boat, (woodItems, count) -> new CollectBoatTask(woodItems.boat, woodItems.prefix + "_planks", count));
             shapedRecipe3x3("lead", Items.LEAD, 1, "string", "string", o, "string", "slime_ball", o, o, o, "string");
-            
+            simple("nether_star", Items.NETHER_STAR, CollectNetherStarsTask::new);
+
             simple("honeycomb", Items.HONEYCOMB, CollectHoneycombTask::new);
             {
                 String h = "honeycomb";
@@ -489,6 +490,10 @@ public class TaskCatalogue {
             {
                 String g = "glass";
                 shapedRecipe3x3("glass_pane", Items.GLASS_PANE, 16, g, g, g, g, g, g, o, o, o).dontMineIfPresent();
+                {
+                    String b = "obsidian";
+                    shapedRecipe3x3("beacon", Items.BEACON, 1, g, g, g, g, g, "nether_star", b, b, b);
+                }
             }
             simple("carved_pumpkin", Items.CARVED_PUMPKIN, count -> new CarveThenCollectTask(Items.CARVED_PUMPKIN, count, Blocks.CARVED_PUMPKIN, Items.PUMPKIN, Blocks.PUMPKIN, Items.SHEARS));
             shapedRecipe2x2("jack_o_lantern", Items.JACK_O_LANTERN, 1, "carved_pumpkin", o, "torch", o);
