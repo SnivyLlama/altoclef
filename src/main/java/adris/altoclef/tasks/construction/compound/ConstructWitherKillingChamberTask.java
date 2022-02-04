@@ -52,13 +52,13 @@ public class ConstructWitherKillingChamberTask extends Task {
             setDebugState("Getting obsidian...");
             return new CollectObsidianTask(obsidianNeeded(mod));
         }
-        if (!WorldHelper.isBlock(mod, new BlockPos(0, -2, 1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()), Blocks.AIR)) {
+        if (!WorldHelper.isBlock(mod, new BlockPos(0, -3, 1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()), Blocks.AIR)) {
             setDebugState("Clearing area for wither");
-            return new DestroyBlockTask(new BlockPos(0, -2, 1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()));
+            return new DestroyBlockTask(new BlockPos(0, -3, 1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()));
         }
-        if (!WorldHelper.isBlock(mod, new BlockPos(0, -2, -1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()), Blocks.AIR)) {
+        if (!WorldHelper.isBlock(mod, new BlockPos(0, -3, -1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()), Blocks.AIR)) {
             setDebugState("Clearing area for wither");
-            return new DestroyBlockTask(new BlockPos(0, -2, -1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()));
+            return new DestroyBlockTask(new BlockPos(0, -3, -1).up(mod.getBlockTracker().getNearestTracking(Blocks.END_PORTAL).get().getY()));
         }
         mod.getClientBaritoneSettings().blocksToAvoidBreaking.value.add(Blocks.OBSIDIAN);
         for (BlockPos pos : OBSIDIAN) {
