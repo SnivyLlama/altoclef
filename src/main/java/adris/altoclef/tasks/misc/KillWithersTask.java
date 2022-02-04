@@ -5,7 +5,6 @@ import adris.altoclef.tasks.construction.compound.ConstructWitherKillingChamberT
 import adris.altoclef.tasks.movement.DefaultGoToDimensionTask;
 import adris.altoclef.tasks.movement.RunAwayFromPositionTask;
 import adris.altoclef.tasks.resources.CollectFoodTask;
-import adris.altoclef.tasks.resources.CollectNetherStarTask;
 import adris.altoclef.tasks.speedrun.BeatMinecraft2Task;
 import adris.altoclef.tasks.squashed.CataloguedResourceTask;
 import adris.altoclef.tasksystem.Task;
