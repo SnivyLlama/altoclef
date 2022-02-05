@@ -12,7 +12,7 @@ import net.minecraft.util.math.Direction;
 
 public class SearchEndIslandsTask extends Task {
     // private Task _getEnderPearlTask;
-    private final int MAX_SEARCH = 175;
+    private final int MAX_SEARCH = 180;
     private Task _getToIslandTask;
     private Task _getBuildingBlocksTask;
     private Task _getToOuterEndIslandsTask;
@@ -22,7 +22,8 @@ public class SearchEndIslandsTask extends Task {
     }
     @Override
     protected void onStart(AltoClef mod) {
-
+        mod.getBehaviour().push();
+        mod.getBehaviour().avoidBlockBreaking(pos -> WorldHelper.isBlock(mod, pos.down(), Blocks.AIR));
     }
 
     @Override
@@ -46,6 +47,11 @@ public class SearchEndIslandsTask extends Task {
             _getBuildingBlocksTask = new GetBuildingMaterialsTask(travelInfo.getLeft());
             return _getBuildingBlocksTask;
         }
+        if (highestGround(mod) != mod.getPlayer().getBlockPos()) {
+            setDebugState("Returning to surface");
+            _getToIslandTask = new GetToBlockTask(highestGround(mod));
+            return _getToIslandTask;
+        }
         setDebugState("Bridging");
         _getToIslandTask = new GetToBlockTask(travelInfo.getRight());
         return _getToIslandTask;
@@ -53,7 +59,7 @@ public class SearchEndIslandsTask extends Task {
 
     @Override
     protected void onStop(AltoClef mod, Task interruptTask) {
-
+        mod.getBehaviour().pop();
     }
 
     @Override
@@ -114,8 +120,7 @@ public class SearchEndIslandsTask extends Task {
                 break;
             }
             curr = curr.offset(dir);
-            for (BlockPos pos : WorldHelper.scanRegion(mod, curr,
-                    new BlockPos(curr.getX(), Math.min(curr.getY() + 75, 175), curr.getZ()))) {
+            for (BlockPos pos : WorldHelper.scanRegion(mod, curr.down(), curr.withY(Math.min(curr.getY() + 75, 170)))) {
                 if (WorldHelper.isBlock(mod, pos, Blocks.END_STONE)) {
                     curr = pos.up();
                     done = true;
@@ -128,5 +133,14 @@ public class SearchEndIslandsTask extends Task {
         cost += Math.abs(curr.getZ() - from.getZ());
         cost += Math.abs(curr.getX() - from.getX());
         return new Pair<>(cost, curr);
+    }
+
+    private BlockPos highestGround(AltoClef mod) {
+        for (BlockPos pos : WorldHelper.scanRegion(mod, mod.getPlayer().getBlockPos(), mod.getPlayer().getBlockPos().withY(170))) {
+            if (WorldHelper.isBlock(mod, pos, Blocks.END_STONE)) {
+                return pos.up();
+            }
+        }
+        return mod.getPlayer().getBlockPos();
     }
 }
