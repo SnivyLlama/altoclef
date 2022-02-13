@@ -11,19 +11,19 @@ import net.minecraft.item.Items;
  * Attacks an entity, but the target entity must be specified.
  */
 public abstract class AbstractKillEntityTask extends AbstractDoToEntityTask {
-    private boolean _jumping;
-
     private static final double OTHER_FORCE_FIELD_RANGE = 2;
 
     // Not the "striking" distance, but the "ok we're close enough, lower our guard for other mobs and focus on this one" range.
     private static final double CONSIDER_COMBAT_RANGE = 10;
 
     private static final Item[] WEAPON_ITEMS = new Item[]{
+            Items.NETHERITE_SWORD,
             Items.DIAMOND_SWORD,
             Items.IRON_SWORD,
             Items.STONE_SWORD,
             Items.WOODEN_SWORD,
             Items.GOLDEN_SWORD,
+            Items.NETHERITE_AXE,
             Items.DIAMOND_AXE,
             Items.IRON_AXE,
             Items.STONE_AXE,
@@ -60,7 +60,7 @@ public abstract class AbstractKillEntityTask extends AbstractDoToEntityTask {
         equipWeapon(mod);
         if (mod.getModSettings().isAttemptCriticalHits() && hitProg >= 0.6 && mod.getPlayer().isOnGround()) {
             mod.getInputControls().hold(Input.JUMP);
-        } else if(_jumping && mod.getInputControls().isHeldDown(Input.JUMP)) {
+        } else if(mod.getInputControls().isHeldDown(Input.JUMP)) {
             mod.getInputControls().release(Input.JUMP);
         }
         if (hitProg >= 0.99 &&
