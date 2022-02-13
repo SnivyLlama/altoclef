@@ -254,6 +254,8 @@ public class TaskCatalogue {
             shapedRecipe2x2("mossy_cobblestone", Items.MOSSY_COBBLESTONE, 1, "cobblestone", "vine", o, o);
             simple("nether_bricks", Items.NETHER_BRICKS, CollectNetherBricksTask::new).dontMineIfPresent();
             shapedRecipe2x2Block("red_nether_bricks", Items.RED_NETHER_BRICKS, 4, "nether_wart");
+            shapedRecipe2x2Block("purpur_block", Items.PURPUR_BLOCK, "popped_chorus_fruit");
+            shapedRecipe2x2("purpur_pillar", Items.PURPUR_PILLAR, 1, "purpur_slab", o, "purpur_slab", o);
             smelt("cracked_stone_bricks", Items.CRACKED_STONE_BRICKS, "stone_bricks");
             smelt("cracked_nether_bricks", Items.CRACKED_NETHER_BRICKS, "nether_bricks");
             smelt("cracked_polished_blackstone_bricks", Items.CRACKED_POLISHED_BLACKSTONE_BRICKS, "polished_blackstone_bricks");
@@ -327,6 +329,8 @@ public class TaskCatalogue {
             shapedRecipeSlab("red_nether_brick_slab", Items.RED_NETHER_BRICK_SLAB, "red_nether_bricks");
             shapedRecipeStairs("red_nether_brick_stairs", Items.RED_NETHER_BRICK_STAIRS, "red_nether_bricks");
             shapedRecipeWall("red_nether_brick_wall", Items.RED_NETHER_BRICK_WALL, "red_nether_bricks");
+            shapedRecipeSlab("purpur_slab", Items.PURPUR_SLAB, "purpur_block");
+            shapedRecipeStairs("purpur_stairs", Items.PURPUR_STAIRS, "purpur_block");
             shapedRecipeSlab("quartz_slab", Items.QUARTZ_SLAB, "quartz_block");
             shapedRecipeStairs("quartz_stairs", Items.QUARTZ_STAIRS, "quartz_block");
             shapedRecipeSlab("smooth_quartz_slab", Items.SMOOTH_QUARTZ_SLAB, "smooth_quartz");
@@ -492,7 +496,7 @@ public class TaskCatalogue {
                 shapedRecipe3x3("glass_pane", Items.GLASS_PANE, 16, g, g, g, g, g, g, o, o, o).dontMineIfPresent();
                 {
                     String b = "obsidian";
-                    shapedRecipe3x3("beacon", Items.BEACON, 1, g, g, g, g, g, "nether_star", b, b, b);
+                    shapedRecipe3x3("beacon", Items.BEACON, 1, g, g, g, g, "nether_star", g, b, b, b);
                 }
             }
             simple("carved_pumpkin", Items.CARVED_PUMPKIN, count -> new CarveThenCollectTask(Items.CARVED_PUMPKIN, count, Blocks.CARVED_PUMPKIN, Items.PUMPKIN, Blocks.PUMPKIN, Items.SHEARS));
@@ -611,6 +615,14 @@ public class TaskCatalogue {
                 String b = "beetroot";
                 shapedRecipe3x3("beetroot_soup", Items.BEETROOT_SOUP, 1, b, b, b, b, b, b, o, "bowl", o);
             }
+
+            // End stuff
+            mine("end_stone", MiningRequirement.WOOD, Blocks.END_STONE, Items.END_STONE).forceDimension(Dimension.END);
+            simple("chorus_fruit", Items.CHORUS_FRUIT, CollectChorusFruitTask::new);
+            smelt("popped_chorus_fruit", Items.POPPED_CHORUS_FRUIT, "chorus_fruit");
+            shapedRecipe2x2("end_rod", Items.END_ROD, 4, "blaze_rod", o, "popped_chorus_fruit", o); // This probably won't work
+            simple("shulker_shell", Items.SHULKER_SHELL, CollectShulkerShellsTask::new);
+            shapedRecipe3x3("shulker_box", Items.SHULKER_BOX, 1, "shulker_shell", o, o, "chest", o, o, "shulker_shell", o, o);
         }
     }
 
